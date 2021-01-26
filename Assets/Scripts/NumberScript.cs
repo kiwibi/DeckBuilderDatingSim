@@ -9,7 +9,7 @@ public class NumberScript : MonoBehaviour
     private Color hidden;
     private Color shown;
 
-    void Start()
+    void Awake()
     {
         childRenderers = GetComponentsInChildren<SpriteRenderer>();
         shown = childRenderers[0].color;
@@ -101,9 +101,12 @@ public class NumberScript : MonoBehaviour
 
     private void hideNumbers()
     {
-        foreach(var renderer in childRenderers)
+        if(childRenderers != null)
         {
-            renderer.color = hidden;
+            foreach (var renderer in childRenderers)
+            {
+                renderer.color = hidden;
+            }
         }
     }
 }
