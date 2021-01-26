@@ -39,36 +39,45 @@ public class Deck : MonoBehaviour
     private void Update()
     {
 
-        if(Input.GetKeyDown(KeyCode.Space))
+        /*if(Input.GetKeyDown(KeyCode.Space))
         {
-            draw();
-        }
+            if (testArrow_.activeSelf == true)
+            {
+                testArrow_.SetActive(false);
+            }
+            else
+            {
+                testArrow_.SetActive(true);
+                testArrow_.GetComponent<Blinking>().ActivateArrow();
+            }
+                
+            //draw();
+        }*/
 
     }
 
-    void increaseCardType(GameManager.chan type)
+    public void increaseCardType(GameLogistics.chan type)
     {
         switch (type)
         {
-            case GameManager.chan.Paper:
+            case GameLogistics.chan.Paper:
                 maxPapers_++;
                 break;
-            case GameManager.chan.Rock:
+            case GameLogistics.chan.Rock:
                 maxRocks_++;
                 break;
-            case GameManager.chan.Scissor:
+            case GameLogistics.chan.Scissor:
                 maxScissors_++;
                 break;
         }
     }
 
-    void draw()
+    void drawHand()
     {
         for (int i = 0; i < playerHand_.handsize_ ; i++)
         {
             if (deckSize_ == 0)
             {
-                resetDeck();
                 break;
             }
 
@@ -80,7 +89,6 @@ public class Deck : MonoBehaviour
                         playerHand_.rocks_++;
                         Rocks_--;
                         deckSize_--;
-                        Debug.Log("rock drawn");
                         break;
                     }
                     i--;
@@ -91,7 +99,6 @@ public class Deck : MonoBehaviour
                         playerHand_.papers_++;
                         Papers_--;
                         deckSize_--;
-                        Debug.Log("paper drawn");
                         break;
                     }
                     i--;
@@ -102,7 +109,6 @@ public class Deck : MonoBehaviour
                         playerHand_.scissors_++;
                         Scissors_--;
                         deckSize_--;
-                        Debug.Log("scissor drawn");
                         break;
                     }
                     i--;
