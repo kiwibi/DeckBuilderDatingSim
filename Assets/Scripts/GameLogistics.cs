@@ -19,10 +19,12 @@ public class GameLogistics : MonoBehaviour
     }
 
     public GameState currentGameState;
+    public GameObject[] stageIndicators_;
     public GameObject[] Chans;
     public GameObject player_;
     private Player playerScript_;
     private int chanIndex_;
+    private int phaseIndicatorIndex_;
 
     private Deck playerDeck_;
     void Awake()
@@ -59,9 +61,19 @@ public class GameLogistics : MonoBehaviour
     public static void ChangeCurrentState()
     {
         if (instance_.currentGameState != GameLogistics.GameState.SpendChan)
+        {
             instance_.currentGameState++;
+            instance_.stageIndicators_[instance_.phaseIndicatorIndex_].SetActive(false);
+            instance_.phaseIndicatorIndex_++;
+            instance_.stageIndicators_[instance_.phaseIndicatorIndex_].SetActive(true);
+        }
         else
+        {
             instance_.currentGameState = GameLogistics.GameState.PickChan;
+            instance_.stageIndicators_[instance_.phaseIndicatorIndex_].SetActive(false);
+            instance_.phaseIndicatorIndex_ = 0;
+            instance_.stageIndicators_[instance_.phaseIndicatorIndex_].SetActive(true);
+        }
         
     }
 
@@ -136,6 +148,7 @@ public class GameLogistics : MonoBehaviour
         }
         ChangeCurrentState();
         instance_.Chans[instance_.chanIndex_].GetComponent<ChanBehavior>().PlayCard();
+        DeActivateArrow(instance_.Chans[instance_.chanIndex_].GetComponent<ChanBehavior>().Percentages_);
     }
 
     void enableAllDates()
