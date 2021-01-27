@@ -9,9 +9,8 @@ public class Player : MonoBehaviour
         LEFT,
         RIGHT
     }
-    public GameObject pickDateArrow_;
-    public GameObject pickCardArrow_;
-    public GameObject[] pickCardAnchors_;
+    public GameObject[] pickDateBorders_;
+    public GameObject[] pickCardBorders_;
     private GameLogistics.chan pickChan;
     [HideInInspector]
     public int cardIndex_;
@@ -42,18 +41,24 @@ public class Player : MonoBehaviour
         if(Input.GetKeyDown(KeyCode.A))
         {
             updatePickedChan(direction.LEFT);
-            pickDateArrow_.transform.position = new Vector3(GameLogistics.GetSpecificChan(pickChan).transform.position.x, pickDateArrow_.transform.position.y);
+            GameLogistics.DeActivateArrow(pickDateBorders_[cardIndex_]);
+            updatePickedCard(direction.LEFT);
+            GameLogistics.ActivateArrow(pickDateBorders_[cardIndex_]);
+            //pickDateArrow_.transform.position = new Vector3(GameLogistics.GetSpecificChan(pickChan).transform.position.x, pickDateArrow_.transform.position.y);
         }
         else if(Input.GetKeyDown(KeyCode.D))
         {
             updatePickedChan(direction.RIGHT);
-            pickDateArrow_.transform.position = new Vector3(GameLogistics.GetSpecificChan(pickChan).transform.position.x, pickDateArrow_.transform.position.y);
+            GameLogistics.DeActivateArrow(pickDateBorders_[cardIndex_]);
+            updatePickedCard(direction.RIGHT);
+            GameLogistics.ActivateArrow(pickDateBorders_[cardIndex_]);
+            //pickDateArrow_.transform.position = new Vector3(GameLogistics.GetSpecificChan(pickChan).transform.position.x, pickDateArrow_.transform.position.y);
         }
         if (Input.GetKeyDown(KeyCode.Space))
         {
             GameLogistics.pickADate(pickChan);
-            GameLogistics.DeActivateArrow(pickDateArrow_);
-            GameLogistics.ActivateArrow(pickCardArrow_);
+            GameLogistics.DeActivateArrow(pickDateBorders_[cardIndex_]);
+            GameLogistics.ActivateArrow(pickCardBorders_[0]);
         }
     }
 
@@ -61,13 +66,15 @@ public class Player : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.A))
         {
+            GameLogistics.DeActivateArrow(pickCardBorders_[cardIndex_]);
             updatePickedCard(direction.LEFT);
-            pickCardArrow_.transform.position = new Vector3(pickCardAnchors_[cardIndex_].transform.position.x, pickCardArrow_.transform.position.y);
+            GameLogistics.ActivateArrow(pickCardBorders_[cardIndex_]);
         }
         else if (Input.GetKeyDown(KeyCode.D))
         {
+            GameLogistics.DeActivateArrow(pickCardBorders_[cardIndex_]);
             updatePickedCard(direction.RIGHT);
-            pickCardArrow_.transform.position = new Vector3(pickCardAnchors_[cardIndex_].transform.position.x, pickCardArrow_.transform.position.y);
+            GameLogistics.ActivateArrow(pickCardBorders_[cardIndex_]);
         }
         if (Input.GetKeyDown(KeyCode.Space) && played_ == false)
         {
