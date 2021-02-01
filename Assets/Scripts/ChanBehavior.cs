@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class ChanBehavior : MonoBehaviour
 {
-
-    int HeartAmount;
+    [HideInInspector]
+    public int HeartAmount;
     [HideInInspector]
     public int Affection;
     [HideInInspector]
@@ -17,6 +17,7 @@ public class ChanBehavior : MonoBehaviour
     int Odds3;
 
     public GameObject Percentages_;
+    public GameObject AffectionNumber_;
     public GameObject[] AnimHearts_;
     public GameObject[] miniRPS_;
     public GameObject[] WinDrawLoss_;
@@ -28,31 +29,51 @@ public class ChanBehavior : MonoBehaviour
         Affection = 0;
         cardIndex_ = 0;
         Invoke("SetDailyOdds", 0.2f);
+        AffectionNumber_.transform.GetChild(0).GetComponent<NumberScript>().setNumber(0);
+        AffectionNumber_.transform.GetChild(1).GetComponent<NumberScript>().setNumber(0);
     }
 
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.U))
         {
-            SetDailyOdds();
+            //StartCoroutine("heartAnimation");
         }
     }
     public void useAffection()
     {
         Affection--;
+        //ActiveCardNumbers_[0].transform.GetChild(0).GetComponent<NumberScript>().setNumber(((number / 10) % 10));
+        AffectionNumber_.transform.GetChild(1).GetComponent<NumberScript>().setNumber(Affection);
     }
 
-    public void addHeart()
+    public void addHeart(int amount)
     {
-        if(HeartAmount + 1 == 3)
+        if (HeartAmount + amount == 3)
         {
             HeartAmount = 0;
-            //heart animation
+            StartCoroutine("heartAnimation");
+            HandleHeartVisual();
             Affection++;
+            if(Affection != 10)
+                AffectionNumber_.transform.GetChild(1).GetComponent<NumberScript>().setNumber(Affection);
+            else
+            {
+                AffectionNumber_.transform.GetChild(1).GetComponent<NumberScript>().setNumber(1);
+                AffectionNumber_.transform.GetChild(1).GetComponent<NumberScript>().setNumber(0);
+                GameLogistics.reset();
+            }
         }
         else
         {
-            HeartAmount++;
+            if(HeartAmount == 0 && amount == -1)
+            {
+                return;
+            }
+            else
+                HeartAmount += amount;
+
+            HandleHeartVisual();
         }
     }
 
@@ -163,11 +184,19 @@ public class ChanBehavior : MonoBehaviour
         }
     }
 
-    void deactivateAllMinis()
+    public void deactivateAllMinis()
     {
         foreach(var mini in miniRPS_)
         {
             mini.SetActive(false);
+        }
+    }
+
+    void activateAllMinis()
+    {
+        foreach (var mini in miniRPS_)
+        {
+            mini.SetActive(true);
         }
     }
 
@@ -184,6 +213,95 @@ public class ChanBehavior : MonoBehaviour
             case GameLogistics.chan.Scissor:
                 Percentages_.transform.GetChild(2).transform.GetChild(0).GetComponent<NumberScript>().setNumber(number);
                 break;
+        }
+    }
+
+    public void dayReset()
+    {
+        Affection = 0;
+        HeartAmount = 0;
+        activateAllMinis();
+        SetDailyOdds();
+        HandleHeartVisual();
+        AffectionNumber_.transform.GetChild(1).GetComponent<NumberScript>().setNumber(0);
+        //update number and visuals
+    }
+
+    public void HandleHeartVisual()
+    {
+        switch (HeartAmount)
+        {
+            case 0:
+                foreach(var heart in AnimHearts_)
+                {
+                    heart.SetActive(false);
+                }
+                break;
+            case 1:
+                AnimHearts_[0].SetActive(true);
+                AnimHearts_[1].SetActive(false);
+                AnimHearts_[2].SetActive(false);
+                break;
+            case 2:
+                AnimHearts_[0].SetActive(true);
+                AnimHearts_[1].SetActive(true);
+                AnimHearts_[2].SetActive(false);
+                break;
+            case 3:
+                AnimHearts_[0].SetActive(true);
+                AnimHearts_[1].SetActive(true);
+                AnimHearts_[2].SetActive(true);
+                break;
+        }
+    }
+
+    IEnumerator heartAnimation()
+    {
+        int i = 0;
+        while (i != 8)
+        {
+            yield return new WaitForSeconds(0.25f);
+            switch (i)
+            {
+                case 0:
+                    AnimHearts_[0].SetActive(true);
+                    i++;
+                    
+                    break;
+                case 1:
+                    AnimHearts_[1].SetActive(true);
+                    i++;
+                    break;
+                case 2:
+                    AnimHearts_[2].SetActive(true);
+                    i++;
+                    break;
+                case 3:
+                    AnimHearts_[0].SetActive(false);
+                    AnimHearts_[1].SetActive(false);
+                    AnimHearts_[2].SetActive(false);
+                    i++;
+                    break;
+                case 4:
+                    AnimHearts_[0].SetActive(true);
+                    i++;
+                    break;
+                case 5:
+                    AnimHearts_[1].SetActive(true);
+                    i++;
+                    break;
+                case 6:
+                    AnimHearts_[2].SetActive(true);
+                    i++;
+                    break;
+                case 7:
+                    AnimHearts_[0].SetActive(false);
+                    AnimHearts_[0].SetActive(false);
+                    AnimHearts_[0].SetActive(false);
+                    HandleHeartVisual();
+                    StopCoroutine("heartAnimation");
+                    break;
+            }
         }
     }
 }
