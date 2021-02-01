@@ -53,10 +53,8 @@ public class GameLogistics : MonoBehaviour
 
     public static GameState GetCurrentState()
     {
-        if (instance_.currentGameState != null)
-            return instance_.currentGameState;
-        else
-            return GameLogistics.GameState.PickChan;
+        return instance_.currentGameState;
+        
     }
     public static void ChangeCurrentState()
     {
@@ -73,8 +71,9 @@ public class GameLogistics : MonoBehaviour
             instance_.stageIndicators_[instance_.phaseIndicatorIndex_].SetActive(false);
             instance_.phaseIndicatorIndex_ = 0;
             instance_.stageIndicators_[instance_.phaseIndicatorIndex_].SetActive(true);
+            instance_.enableAllDates();
         }
-        
+        AudioPlayer.PlaySoundEffect(4);
     }
 
     public static void AddPlayerCard(chan type)
@@ -90,7 +89,7 @@ public class GameLogistics : MonoBehaviour
                 }
                 break;
             case chan.Paper:
-                ChanBehavior paper = instance_.Chans[0].GetComponent<ChanBehavior>();
+                ChanBehavior paper = instance_.Chans[1].GetComponent<ChanBehavior>();
                 if (paper.Affection > 0)
                 {
                     paper.useAffection();
@@ -98,9 +97,9 @@ public class GameLogistics : MonoBehaviour
                 }
                 break;
             case chan.Scissor:
-                ChanBehavior scissor = instance_.Chans[0].GetComponent<ChanBehavior>();
+                ChanBehavior scissor = instance_.Chans[2].GetComponent<ChanBehavior>();
                 if (scissor.Affection > 0)
-                {
+                { 
                     scissor.useAffection();
                     instance_.playerDeck_.increaseCardType(type);
                 }
@@ -109,7 +108,7 @@ public class GameLogistics : MonoBehaviour
                 Debug.Log("faulty input");
                 break;
         }
-        ChangeCurrentState();
+        AudioPlayer.PlaySoundEffect(3);
     }
 
     public static void ActivateArrow(GameObject arrow)
@@ -128,16 +127,19 @@ public class GameLogistics : MonoBehaviour
         switch (type)
         {
             case chan.Rock:
+                AudioPlayer.PlayVoiceLine(1);
                 instance_.Chans[1].SetActive(false);
                 instance_.Chans[2].SetActive(false);
                 instance_.chanIndex_ = 0;
                 break;
             case chan.Paper:
+                AudioPlayer.PlayVoiceLine(2);
                 instance_.Chans[0].SetActive(false);
                 instance_.Chans[2].SetActive(false);
                 instance_.chanIndex_ = 1;
                 break;
             case chan.Scissor:
+                AudioPlayer.PlayVoiceLine(3);
                 instance_.Chans[0].SetActive(false);
                 instance_.Chans[1].SetActive(false);
                 instance_.chanIndex_ = 2;
@@ -149,6 +151,7 @@ public class GameLogistics : MonoBehaviour
         ChangeCurrentState();
         instance_.Chans[instance_.chanIndex_].GetComponent<ChanBehavior>().PlayCard();
         DeActivateArrow(instance_.Chans[instance_.chanIndex_].GetComponent<ChanBehavior>().Percentages_);
+        instance_.playerDeck_.drawHand();
     }
 
     void enableAllDates()
@@ -156,59 +159,127 @@ public class GameLogistics : MonoBehaviour
         foreach(var date in Chans)
         {
             date.SetActive(true);
+            date.GetComponent<ChanBehavior>().dayReset();
         }
+        ActivateArrow(instance_.Chans[instance_.chanIndex_].GetComponent<ChanBehavior>().Percentages_);
+        playerScript_.pickChan = chan.Rock;
     }
 
     public static void CalculateRPS(int playerCardIndex)
     {
         ChanBehavior chanScript = instance_.Chans[instance_.chanIndex_].GetComponent<ChanBehavior>();
+        instance_.StopCoroutine("lossDrawEffect");
+        instance_.StopCoroutine("heartAnimation");
+        chanScript.HandleHeartVisual();
+        instance_.fastClickerHide();
         switch (playerCardIndex)
         {
             case 0:
-                if(chanScript.pickedCard_ == 0)
+                if (instance_.playerDeck_.isCardInHandAvailible(0))
                 {
-                    Debug.Log("Draw");
-                }else if(chanScript.pickedCard_ == 1)
-                {
-                    Debug.Log("Loss");
-                }
-                else
-                {
-                    Debug.Log("Win");
+                    instance_.playerDeck_.PlayCard(chan.Rock);
+                    if (chanScript.pickedCard_ == 0)
+                    {
+                        AudioPlayer.PlayResult(2);
+                        chanScript.WinDrawLoss_[0].SetActive(true);
+                        instance_.StartCoroutine("lossDrawEffect");
+                    }
+                    else if (chanScript.pickedCard_ == 1)
+                    {
+                        AudioPlayer.PlayResult(3);
+                        chanScript.addHeart(-1);
+                        chanScript.WinDrawLoss_[1].SetActive(true);
+                        instance_.StartCoroutine("lossDrawEffect");
+                    }
+                    else if (chanScript.pickedCard_ == 2)
+                    {
+                        AudioPlayer.PlayResult(1);
+                        chanScript.addHeart(1);
+                    }
+                    chanScript.PlayCard();
                 }
                 break;
             case 1:
-                if (chanScript.pickedCard_ == 0)
+                if (instance_.playerDeck_.isCardInHandAvailible(1))
                 {
-                    Debug.Log("Win");
-                }
-                else if (chanScript.pickedCard_ == 1)
-                {
-                    Debug.Log("Draw");
-                }
-                else
-                {
-                    Debug.Log("Loss");
+                    instance_.playerDeck_.PlayCard(chan.Paper);
+                    if (chanScript.pickedCard_ == 0)
+                    {
+                        AudioPlayer.PlayResult(1);
+                        chanScript.addHeart(1);
+                    }
+                    else if (chanScript.pickedCard_ == 1)
+                    {
+                        AudioPlayer.PlayResult(2);
+                        chanScript.WinDrawLoss_[0].SetActive(true);
+                        instance_.StartCoroutine("lossDrawEffect");
+                    }
+                    else if (chanScript.pickedCard_ == 2)
+                    {
+                        AudioPlayer.PlayResult(3);
+                        chanScript.addHeart(-1);
+                        chanScript.WinDrawLoss_[0].SetActive(true);
+                        instance_.StartCoroutine("lossDrawEffect");
+                    }
+                    chanScript.PlayCard();
                 }
                 break;
             case 2:
-                if (chanScript.pickedCard_ == 0)
+                if (instance_.playerDeck_.isCardInHandAvailible(2))
                 {
-                    Debug.Log("Loss");
-                }
-                else if (chanScript.pickedCard_ == 1)
-                {
-                    Debug.Log("Win");
-                }
-                else
-                {
-                    Debug.Log("Draw");
+                    instance_.playerDeck_.PlayCard(chan.Scissor);
+                    if (chanScript.pickedCard_ == 0)
+                    {
+                        AudioPlayer.PlayResult(3);
+                        chanScript.addHeart(-1);
+                        chanScript.WinDrawLoss_[1].SetActive(true);
+                        instance_.StartCoroutine("lossDrawEffect");
+                    }
+                    else if (chanScript.pickedCard_ == 1)
+                    {
+                        AudioPlayer.PlayResult(1);
+                        chanScript.addHeart(1);
+                    }
+                    else if(chanScript.pickedCard_ == 2)
+                    {
+                        AudioPlayer.PlayResult(2);
+                        chanScript.WinDrawLoss_[0].SetActive(true);
+                        instance_.StartCoroutine("lossDrawEffect");
+                    }
+                    chanScript.PlayCard();
                 }
                 break;
         }
         
-        chanScript.PlayCard();
+        
         instance_.playerScript_.played_ = false;
 
+    }
+
+    IEnumerator lossDrawEffect()
+    {
+        yield return new WaitForSeconds(1f);
+        Chans[chanIndex_].GetComponent<ChanBehavior>().WinDrawLoss_[0].SetActive(false);
+        Chans[chanIndex_].GetComponent<ChanBehavior>().WinDrawLoss_[1].SetActive(false);
+    }
+
+    private void fastClickerHide()
+    {
+        Chans[chanIndex_].GetComponent<ChanBehavior>().WinDrawLoss_[0].SetActive(false);
+        Chans[chanIndex_].GetComponent<ChanBehavior>().WinDrawLoss_[1].SetActive(false);
+    }
+
+    public static void reset()
+    {
+        ActivateArrow(instance_.Chans[instance_.chanIndex_].GetComponent<ChanBehavior>().Percentages_);
+        instance_.currentGameState = GameState.PickChan;
+        instance_.chanIndex_ = 0;
+        instance_.stageIndicators_[1].SetActive(false);
+        instance_.phaseIndicatorIndex_ = 0;
+        instance_.stageIndicators_[instance_.phaseIndicatorIndex_].SetActive(true);
+        instance_.playerDeck_.reset();
+        instance_.enableAllDates();
+        instance_.playerScript_.Reset();
+        
     }
 }

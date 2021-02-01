@@ -11,7 +11,9 @@ public class Player : MonoBehaviour
     }
     public GameObject[] pickDateBorders_;
     public GameObject[] pickCardBorders_;
-    private GameLogistics.chan pickChan;
+    public GameObject[] pickUpgradeBorders_;
+    [HideInInspector]
+    public GameLogistics.chan pickChan;
     [HideInInspector]
     public int cardIndex_;
     [HideInInspector]
@@ -40,6 +42,7 @@ public class Player : MonoBehaviour
     {
         if(Input.GetKeyDown(KeyCode.A))
         {
+            AudioPlayer.PlaySoundEffect(1);
             updatePickedChan(direction.LEFT);
             GameLogistics.DeActivateArrow(pickDateBorders_[cardIndex_]);
             updatePickedCard(direction.LEFT);
@@ -48,6 +51,7 @@ public class Player : MonoBehaviour
         }
         else if(Input.GetKeyDown(KeyCode.D))
         {
+            AudioPlayer.PlaySoundEffect(1);
             updatePickedChan(direction.RIGHT);
             GameLogistics.DeActivateArrow(pickDateBorders_[cardIndex_]);
             updatePickedCard(direction.RIGHT);
@@ -58,7 +62,8 @@ public class Player : MonoBehaviour
         {
             GameLogistics.pickADate(pickChan);
             GameLogistics.DeActivateArrow(pickDateBorders_[cardIndex_]);
-            GameLogistics.ActivateArrow(pickCardBorders_[0]);
+            GameLogistics.ActivateArrow(pickCardBorders_[cardIndex_]);
+            
         }
     }
 
@@ -66,18 +71,21 @@ public class Player : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.A))
         {
+            AudioPlayer.PlaySoundEffect(1);
             GameLogistics.DeActivateArrow(pickCardBorders_[cardIndex_]);
             updatePickedCard(direction.LEFT);
             GameLogistics.ActivateArrow(pickCardBorders_[cardIndex_]);
         }
         else if (Input.GetKeyDown(KeyCode.D))
         {
+            AudioPlayer.PlaySoundEffect(1);
             GameLogistics.DeActivateArrow(pickCardBorders_[cardIndex_]);
             updatePickedCard(direction.RIGHT);
             GameLogistics.ActivateArrow(pickCardBorders_[cardIndex_]);
         }
         if (Input.GetKeyDown(KeyCode.Space) && played_ == false)
         {
+            AudioPlayer.PlaySoundEffect(2);
             played_ = true;
             GameLogistics.CalculateRPS(cardIndex_);
 
@@ -86,7 +94,50 @@ public class Player : MonoBehaviour
 
     void SpendUpdate()
     {
-
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            AudioPlayer.PlaySoundEffect(1);
+            if (pickUpgradeBorders_[0].activeSelf)
+            {
+                pickUpgradeBorders_[0].SetActive(false);
+                pickUpgradeBorders_[1].SetActive(true);
+            }
+            else
+            {
+                pickUpgradeBorders_[1].SetActive(false);
+                pickUpgradeBorders_[0].SetActive(true);
+            }
+        }
+        else if (Input.GetKeyDown(KeyCode.D))
+        {
+            AudioPlayer.PlaySoundEffect(1);
+            if (pickUpgradeBorders_[0].activeSelf)
+            {
+                pickUpgradeBorders_[0].SetActive(false);
+                pickUpgradeBorders_[1].SetActive(true);
+            }
+            else
+            {
+                pickUpgradeBorders_[1].SetActive(false);
+                pickUpgradeBorders_[0].SetActive(true);
+            }
+        }
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if(pickUpgradeBorders_[0].activeSelf)
+            {
+                GameLogistics.AddPlayerCard(pickChan);
+            }
+            else
+            {
+                AudioPlayer.PlaySoundEffect(1);
+                GameLogistics.ChangeCurrentState();
+                pickUpgradeBorders_[1].SetActive(false);
+                pickUpgradeBorders_[0].SetActive(false);
+                GameLogistics.ActivateArrow(pickDateBorders_[0]);
+                cardIndex_ = 0;
+            }
+        }
     }
 
     void updatePickedChan(direction dir)
@@ -128,4 +179,17 @@ public class Player : MonoBehaviour
         }
     }
 
+    public void enterPickPhase()
+    {
+        GameLogistics.DeActivateArrow(pickCardBorders_[cardIndex_]);
+        GameLogistics.ActivateArrow(pickUpgradeBorders_[0]);
+        GameLogistics.GetSpecificChan(pickChan).GetComponent<ChanBehavior>().deactivateAllMinis();
+        
+    }
+
+    public void Reset()
+    {
+        GameLogistics.DeActivateArrow(pickCardBorders_[cardIndex_]);
+
+    }
 }

@@ -22,7 +22,8 @@ public class Deck : MonoBehaviour
     int deckSize_;
     public int startValue;
     Hand playerHand_;
-
+    public GameObject[] ActiveCardNumbers_;
+    public GameObject[] DeckCardNumbers_;
     void Start()
     {
         playerHand_.handsize_ = 5;
@@ -34,25 +35,16 @@ public class Deck : MonoBehaviour
         maxPapers_ = startValue;
         maxScissors_ = startValue;
         deckSize_ = maxPapers_ + maxRocks_ + maxScissors_;
+        setAllDeckNumbers();
     }
 
     private void Update()
     {
 
-        /*if(Input.GetKeyDown(KeyCode.Space))
+        if(Input.GetKeyDown(KeyCode.N))
         {
-            if (testArrow_.activeSelf == true)
-            {
-                testArrow_.SetActive(false);
-            }
-            else
-            {
-                testArrow_.SetActive(true);
-                testArrow_.GetComponent<Blinking>().ActivateArrow();
-            }
-                
-            //draw();
-        }*/
+
+        }
 
     }
 
@@ -62,17 +54,23 @@ public class Deck : MonoBehaviour
         {
             case GameLogistics.chan.Paper:
                 maxPapers_++;
+                Papers_ = maxPapers_;
+                setDeckNumber(GameLogistics.chan.Paper, maxPapers_);
                 break;
             case GameLogistics.chan.Rock:
                 maxRocks_++;
+                Rocks_ = maxRocks_;
+                setDeckNumber(GameLogistics.chan.Rock, maxRocks_);
                 break;
             case GameLogistics.chan.Scissor:
                 maxScissors_++;
+                Scissors_ = maxScissors_;
+                setDeckNumber(GameLogistics.chan.Scissor, maxScissors_);
                 break;
         }
     }
 
-    void drawHand()
+    public void drawHand()
     {
         for (int i = 0; i < playerHand_.handsize_ ; i++)
         {
@@ -115,9 +113,12 @@ public class Deck : MonoBehaviour
                     break;
             }
         }
+        setAllHandNumbers();
+
+        setAllDeckNumbers();
     }
 
-    bool isCardAvailible(int cardNumber)
+    public bool isCardInDeckAvailible(int cardNumber)
     {
         switch (cardNumber)
         {
@@ -137,12 +138,203 @@ public class Deck : MonoBehaviour
         return true;
     }
 
+    public bool isCardInHandAvailible(int cardNumber)
+    {
+        switch (cardNumber)
+        {
+            case 0:
+                if (playerHand_.rocks_ == 0)
+                    return false;
+                break;
+            case 1:
+                if (playerHand_.papers_ == 0)
+                    return false;
+                break;
+            case 2:
+                if (playerHand_.scissors_ == 0)
+                    return false;
+                break;
+        }
+        return true;
+    }
+
     void resetDeck()
     {
+        usedCards_ = 0;
         Rocks_ = maxRocks_;
         Papers_ = maxPapers_;
         Scissors_ = maxScissors_;
         deckSize_ = maxPapers_ + maxRocks_ + maxScissors_;
-        Debug.Log("deck reset");
+        setAllDeckNumbers();
+    }
+
+    public void PlayCard(GameLogistics.chan type)
+    {
+        usedCards_++;
+        switch (type)
+        {
+            case GameLogistics.chan.Rock:
+                playerHand_.rocks_--;
+                setCardNumber(GameLogistics.chan.Rock, playerHand_.rocks_);
+                break;
+            case GameLogistics.chan.Paper:
+                playerHand_.papers_--;
+                setCardNumber(GameLogistics.chan.Paper, playerHand_.papers_);
+                break;
+            case GameLogistics.chan.Scissor:
+                playerHand_.scissors_--;
+                setCardNumber(GameLogistics.chan.Scissor, playerHand_.scissors_);
+                break;
+        }
+        if(isHandEmpty())
+        {
+            if(deckSize_ == 0)
+            {
+                StartCoroutine("goToPick");
+                return;
+            }
+            drawHand();
+        }
+    }
+
+    private void setDeckNumber(GameLogistics.chan type, int number)
+    {
+        switch (type)
+        {
+            case GameLogistics.chan.Rock:
+                if(number > 10)
+                {
+                    DeckCardNumbers_[0].transform.GetChild(0).GetComponent<NumberScript>().setNumber(((number / 10) % 10));
+                    DeckCardNumbers_[0].transform.GetChild(1).GetComponent<NumberScript>().setNumber((number % 10));
+                }
+                else
+                {
+                    DeckCardNumbers_[0].transform.GetChild(0).GetComponent<NumberScript>().setNumber(0);
+                    DeckCardNumbers_[0].transform.GetChild(1).GetComponent<NumberScript>().setNumber((number % 10));
+                }
+                break;
+            case GameLogistics.chan.Paper:
+                if (number > 10)
+                {
+                    DeckCardNumbers_[1].transform.GetChild(0).GetComponent<NumberScript>().setNumber(((number / 10) % 10));
+                    DeckCardNumbers_[1].transform.GetChild(1).GetComponent<NumberScript>().setNumber((number % 10));
+                }
+                else
+                {
+                    DeckCardNumbers_[1].transform.GetChild(0).GetComponent<NumberScript>().setNumber(0);
+                    DeckCardNumbers_[1].transform.GetChild(1).GetComponent<NumberScript>().setNumber((number % 10));
+                }
+                break;
+            case GameLogistics.chan.Scissor:
+                if (number > 10)
+                {
+                    DeckCardNumbers_[2].transform.GetChild(0).GetComponent<NumberScript>().setNumber(((number / 10) % 10));
+                    DeckCardNumbers_[2].transform.GetChild(1).GetComponent<NumberScript>().setNumber((number % 10));
+                }
+                else
+                {
+                    DeckCardNumbers_[2].transform.GetChild(0).GetComponent<NumberScript>().setNumber(0);
+                    DeckCardNumbers_[2].transform.GetChild(1).GetComponent<NumberScript>().setNumber((number % 10));
+                }
+                break;
+        }
+    }
+
+    private void setCardNumber(GameLogistics.chan type, int number)
+    {
+        switch (type)
+        {
+            case GameLogistics.chan.Rock:
+                if (number > 10)
+                {
+                    ActiveCardNumbers_[0].transform.GetChild(0).GetComponent<NumberScript>().setNumber(((number / 10) % 10));
+                    ActiveCardNumbers_[0].transform.GetChild(1).GetComponent<NumberScript>().setNumber((number % 10));
+                }
+                else
+                {
+                    ActiveCardNumbers_[0].transform.GetChild(0).GetComponent<NumberScript>().setNumber(0);
+                    ActiveCardNumbers_[0].transform.GetChild(1).GetComponent<NumberScript>().setNumber((number % 10));
+                }
+                break;
+            case GameLogistics.chan.Paper:
+                if (number > 10)
+                {
+                    ActiveCardNumbers_[1].transform.GetChild(0).GetComponent<NumberScript>().setNumber(((number / 10) % 10));
+                    ActiveCardNumbers_[1].transform.GetChild(1).GetComponent<NumberScript>().setNumber((number % 10));
+                }
+                else
+                {
+                    ActiveCardNumbers_[1].transform.GetChild(0).GetComponent<NumberScript>().setNumber(0);
+                    ActiveCardNumbers_[1].transform.GetChild(1).GetComponent<NumberScript>().setNumber((number % 10));
+                }
+                break;
+            case GameLogistics.chan.Scissor:
+                if (number > 10)
+                {
+                    ActiveCardNumbers_[2].transform.GetChild(0).GetComponent<NumberScript>().setNumber(((number / 10) % 10));
+                    ActiveCardNumbers_[2].transform.GetChild(1).GetComponent<NumberScript>().setNumber((number % 10));
+                }
+                else
+                {
+                    ActiveCardNumbers_[2].transform.GetChild(0).GetComponent<NumberScript>().setNumber(0);
+                    ActiveCardNumbers_[2].transform.GetChild(1).GetComponent<NumberScript>().setNumber((number % 10));
+                }
+                break;
+        }
+    }
+
+    public bool isHandEmpty()
+    {
+        if(playerHand_.rocks_ == 0)
+        {
+            if(playerHand_.papers_ == 0)
+            {
+                if(playerHand_.scissors_ == 0)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private void setAllDeckNumbers()
+    {
+        setDeckNumber(GameLogistics.chan.Rock, Rocks_);
+        setDeckNumber(GameLogistics.chan.Paper, Papers_);
+        setDeckNumber(GameLogistics.chan.Scissor, Scissors_);
+    }
+
+    private void setAllHandNumbers()
+    {
+        setCardNumber(GameLogistics.chan.Rock, playerHand_.rocks_);
+        setCardNumber(GameLogistics.chan.Paper, playerHand_.papers_);
+        setCardNumber(GameLogistics.chan.Scissor, playerHand_.scissors_);
+    }
+
+    IEnumerator goToPick()
+    {
+        yield return new WaitForSeconds(0.5f);
+        GameLogistics.ChangeCurrentState();
+        gameObject.GetComponent<Player>().enterPickPhase();
+        resetDeck();
+    }
+
+    public void reset()
+    {
+        playerHand_.handsize_ = 5;
+        usedCards_ = 0;
+        Rocks_ = startValue;
+        Papers_ = startValue;
+        Scissors_ = startValue;
+        maxRocks_ = startValue;
+        maxPapers_ = startValue;
+        maxScissors_ = startValue;
+        deckSize_ = maxPapers_ + maxRocks_ + maxScissors_;
+        playerHand_.rocks_ = 0;
+        playerHand_.papers_ = 0;
+        playerHand_.scissors_ = 0;
+        setAllDeckNumbers();
+        setAllHandNumbers();
     }
 }
